@@ -21,13 +21,13 @@ CMD                         Description
 MOVIE, TV, and EPISODE commands can optionally specify the show or movie
 you want to play:
 
-- kodi movie 'The Avengers'
-- kodi -t 'Game of Thrones'
-- kodi -e 'Arrow - 3x04'
+	kodi movie 'The Avengers'
+	kodi -t 'Game of Thrones'
+	kodi -e 'Arrow - 3x04'
 
 To get a list of movies or TV shows based on a search term, use:
 
-- kodi find 'movies:The Avengers'
-- kodi -fm 'The Avengers'
-- kodi find tv:Suits
-- kodi -ft Suits
+	kodi find 'movies:The Avengers'
+	kodi -fm 'The Avengers'
+	kodi find tv:Suits
+	kodi -ft Suits
