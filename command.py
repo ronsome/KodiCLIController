@@ -168,6 +168,7 @@ class Player:
 		found = json.loads(results)
 		try:
 			self.__get_all_episodes(found['result']['tvshows'][0])
+			return ''
 		except:
 			return "Nothing found for '{}'.".format(q)
 
