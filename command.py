@@ -12,12 +12,13 @@ class Player:
 		self.specials = self.__get_specials()
 
 	def __detect_Kodi(self):
+		url = 'http://192.168.10.102:8080/jsonrpc?request='
 		# Simply test if Kodi is running.
-		self.introspect()
+		self.introspect(url)
 		# Eventually code a way to automatically detect Kodi
 		# on the local network, but for now,
 		# change this to the URL where Kodi is located.
-		return 'http://192.168.10.102:8080/jsonrpc?request='
+		return url
 
 	def __pretty_print(self, str):
 		doc = json.loads(str)
@@ -31,6 +32,20 @@ class Player:
 		lst = f.read()
 		f.close()
 		return json.loads(lst)
+
+	def introspect(self, url):
+		obj = {
+			"jsonrpc":"2.0","method": "JSONRPC.Introspect",
+			"params":{
+				"filter": {
+					"id":"AudioLibrary.GetAlbums",
+					"type": "method"
+				}
+			},
+			"id":1
+		}
+		cmd = json.dumps(obj)
+		return simplecurl.get_contents(url + cmd)
 
 	def play_pause(self):
 		params = {
@@ -83,20 +98,6 @@ class Player:
 		cmd = json.dumps(params)
 		simplecurl.get_contents(self.url + cmd)
 		return 'Scanning the video library'
-
-	def introspect(self):
-		obj = {
-			"jsonrpc":"2.0","method": "JSONRPC.Introspect",
-			"params":{
-				"filter": {
-					"id":"AudioLibrary.GetAlbums",
-					"type": "method"
-				}
-			},
-			"id":1
-		}
-		cmd = json.dumps(obj)
-		return simplecurl.get_contents(self.url + cmd)
 
 	def display_info(self):
 		# Activates On Screen Display

@@ -133,7 +133,7 @@ elif cmd == 'list':
 	exit()
 elif 'find-movie' in cmd: player.find_from('movies', video)
 elif cmd == 'find-tv': player.find_from('tv', video)
-elif cmd == 'ftv': player.find_from('tv', video)
+elif cmd == 'ftv': print( player.find_from('tv', video) )
 elif cmd == 'find':
 	if not video:
 		video = input("What do you want to find? ")
