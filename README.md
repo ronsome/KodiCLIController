@@ -1,6 +1,6 @@
 Command line interface for controlling Kodi.
 
-CMD                         Description
+## Commands
 
 ---
 
