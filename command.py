@@ -8,18 +8,23 @@ import os.path
 
 class Player:
 	def __init__(self):
-		self.url = 'http://192.168.10.102:8080/jsonrpc?request='
-		self.introspect()
+		self.url = self.__detect_Kodi()
 		self.specials = self.__get_specials()
 
-	def __err(self):
-		print('!!!')
+	def __detect_Kodi(self):
+		# Simply test if Kodi is running.
+		self.introspect()
+		# Eventually code a way to automatically detect Kodi
+		# on the local network, but for now,
+		# change this to the URL where Kodi is located.
+		return 'http://192.168.10.102:8080/jsonrpc?request='
 
 	def __pretty_print(self, str):
 		doc = json.loads(str)
 		return json.dumps(doc, indent=4)
 
 	def __get_specials(self):
+		# Some edge cases involving non-alphanumeric characters
 		mypath = os.path.abspath(os.path.dirname(__file__))
 		jsonfile = os.path.join(mypath, 'specials.json')
 		f = open(jsonfile)
@@ -51,6 +56,8 @@ class Player:
 		return 'Stopping Kodi.'
 
 	def __begin(self, item):
+		# Begin playback of an item using it's path
+		# resume from where i left off, if applicable.
 		params = {
 			"jsonrpc":"2.0","method": "Player.Open",
 			"params":{
@@ -68,6 +75,7 @@ class Player:
 			return self.__pretty_print(results)
 
 	def scan(self):
+		# Scan the video library only.
 		params = {
 			"jsonrpc":"2.0","method": "VideoLibrary.Scan", "id": 1,
 			"params": {"showdialogs": True}
@@ -91,12 +99,14 @@ class Player:
 		return simplecurl.get_contents(self.url + cmd)
 
 	def display_info(self):
+		# Activates On Screen Display
 		obj = {"jsonrpc":"2.0","method": "Input.ShowOSD", "id":1}
 		cmd = json.dumps(obj)
 		self.__pretty_print( simplecurl.get_contents(self.url + cmd) )
 		return self.get_whats_playing()
 
 	def to_home_screen(self):
+		# Goes to the home screen
 		obj = {"jsonrpc":"2.0","method": "Input.Home", "id":1}
 		cmd = json.dumps(obj)
 		self.__pretty_print( simplecurl.get_contents(self.url + cmd) )
@@ -140,7 +150,28 @@ class Player:
 			info = 'Nothing playing.'
 		return info
 
+	def list_episodes(self, q, andprint=True):
+		# Searches for a show, and prints all episodes
+		special = self.__is_special(q)
+		params = {
+			"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows",
+			"params": {
+				"filter": {"field": "title", "operator":"contains", "value": q},
+				"properties": ["title", "file"],
+				"sort": {"order": "ascending", "method": "title", "ignorearticle": True}
+			},
+			"id": "libTvShows"
+		}
+		cmd = json.dumps(params)
+		results = simplecurl.get_contents(self.url + cmd)
+		found = json.loads(results)
+		try:
+			self.__get_all_episodes(found['result']['tvshows'][0])
+		except:
+			return "Nothing found for '{}'.".format(q)
+
 	def list_shows(self, andprint=True):
+		# Returns the list of TV shows (and prints them)
 		params = {
 			"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows",
 			"params":{
@@ -162,6 +193,7 @@ class Player:
 		except:
 			return []
 	def list_movies(self, andprint=True):
+		# Returns the list of movies (and prints them)
 		if andprint:
 			print("Listing movies.\n---")
 		params = {
@@ -183,6 +215,7 @@ class Player:
 		except:
 			return []
 	def __movielist(self, q):
+		# Returns the list of movies (to automatically play)
 		params = {
 			"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies",
 			"params":{
@@ -206,6 +239,7 @@ class Player:
 		return False
 
 	def find_from(self, content, q):
+		# Look for a title in the lists of TV shows or movies
 		special = self.__is_special(q)
 		if special: q = special
 		print("Looking for '{}' in {}...".format(q, content.upper()))
@@ -217,6 +251,7 @@ class Player:
 					print(mov['title'])
 					matched = ''
 		else:
+			return self.list_episodes(q)
 			shows = self.list_shows(0)
 			for tv in  shows:
 				if q.lower() in tv['title'].lower():
@@ -224,6 +259,7 @@ class Player:
 					matched = ''
 		print(matched)
 	def __tvlist(self, q):
+		# Returns the list of TV shows for automatic playback
 		params = {
 			"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows",
 			"params":{
@@ -272,8 +308,29 @@ class Player:
 			return self.__get_old_episode(epnum, found['result']['tvshows'][0])
 		except:
 			return "Couldn't find the show '{}'".format(show)
-		
+	def __get_all_episodes(self, show):
+		# Get a list of episodes for a specific show
+		params = {
+			"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes",
+			"params": {
+				"tvshowid": show["tvshowid"],
+				"properties": ["title", "file", "playcount"]
+			},
+			"id": "libTvShows"
+		}
+		cmd = json.dumps(params)
+		results = simplecurl.get_contents(self.url + cmd)
+		found = json.loads(results)
+		try:
+			print(show['title'] + '\n----------')
+			for episode in found['result']['episodes']:
+				print(episode['label'])
+		except:
+			return "No episodes for '{}'".format(show['title'])
+		return ''
+
 	def __get_next_episode(self, show):
+		# Play the next unwatched episode of a TV show.
 		params = {
 			"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes",
 			"params":{
@@ -292,6 +349,7 @@ class Player:
 		return matched
 
 	def __pick_episode(self, epnum, episodes):
+		# Return a specific episode using the format SxEE.
 		for episode in episodes:
 			if epnum in episode['label']:
 				print("Found '{}'".format(episode['label']))
@@ -299,6 +357,7 @@ class Player:
 		return None
 
 	def __get_old_episode(self, epnum, show):
+		# Start playing a specific episode using the format SxEE.
 		epnum = epnum.split(' - ')[1].strip()
 		params = {
 			"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes",
@@ -319,6 +378,7 @@ class Player:
 			return "Couldn't find episode '{}: {}'.".format(show['title'], epnum)
 
 	def search_movies(self, moviename):
+		# Find, and play a specific movie
 		movie = self.__movielist(moviename)
 		if movie:
 			matched = "Found '" + movie['title'] + "'\n"
@@ -328,6 +388,7 @@ class Player:
 		return matched
 
 	def search_shows(self, showname):
+		# Find, and play the next unwatched episode of a TV show
 		special = self.__is_special(showname)
 		if special: showname = special
 		show = self.__tvlist(showname)
