@@ -2,8 +2,6 @@ Command line interface for controlling Kodi.
 
 ## Commands
 
----
-
 - `PLAY`, `-c`                    Continue playback.
 - `PAUSE`, `-w`                   Pause playback.
 - `TOGGLE`, `-p`                  Toggle between play and pause.
