@@ -12,7 +12,7 @@ class Player:
 		self.specials = self.__get_specials()
 
 	def __detect_Kodi(self):
-		url = 'http://192.168.10.102:8080/jsonrpc?request='
+		url = 'http://localhost:8080/jsonrpc?request='
 		# Simply test if Kodi is running.
 		self.introspect(url)
 		# Eventually code a way to automatically detect Kodi
