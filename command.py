@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # kodi/command.py
 # Ron Newsome, Jr.
 # 2018-05-12
