@@ -1,4 +1,4 @@
-Command line interface for controlling Kodi.
+An API and command line interface for controlling Kodi.
 
 ## Commands
 
