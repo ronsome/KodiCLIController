@@ -18,5 +18,6 @@ An API and command line interface for controlling Kodi.
 
 To get a list of movies or TV shows based on a search term, use:
 
-  kodi --find-movies 'The Avengers'
-  kodi --find-show Suits
+    kodi --find-movies 'The Avengers'
+  
+    kodi --find-show Suits
